@@ -1,0 +1,13 @@
+{
+  "browser": true,
+  "curly": true,
+  "eqeqeq": true,
+  "esversion": 6,
+  "forin": true,
+  "freeze": true,
+  "node": true,
+  "quotmark": "single",
+  "undef": true,
+  "unused": "strict",
+  "indent": 1
+}

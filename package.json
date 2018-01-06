@@ -1,0 +1,20 @@
+{
+  "name": "casperjs-better-download",
+  "version": "1.0.0",
+  "description": "Download a file in the PhantomJS browser context instead of using the built-in CasperJS .download() method.",
+  "main": "index.js",
+  "scripts": { },
+  "keywords": [
+    "casperjs",
+    "phantomjs",
+    "slimerjs",
+    "test",
+    "testing",
+    "scraping",
+    "downloading"
+  ],
+  "author": {
+  	"name": "apofic",
+    "url": "https://github.com/apofic",
+  "license": "MIT"
+}
