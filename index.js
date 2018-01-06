@@ -40,100 +40,100 @@ module.exports = function(opts) {
 
 
 	// Create request to download file
-    casper.thenEvaluate(function(url) {
+	casper.thenEvaluate(function(url) {
 
-    	// Create an object to track the download's progress
-        window[url] = {
-            xhr: new XMLHttpRequest(),
-            transferComplete: false,
-            error: false
-        };
+		// Create an object to track the download's progress
+		window[url] = {
+			xhr: new XMLHttpRequest(),
+			transferComplete: false,
+			error: false
+		};
 
-        var xhr = window[url].xhr;
+		var xhr = window[url].xhr;
 
-        // File loaded completely
-        xhr.onload = function () {
-            window[url].transferComplete = true;
-        };
+		// File loaded completely
+		xhr.onload = function () {
+			window[url].transferComplete = true;
+		};
 
-        // Error occured
-        xhr.onerror = function() {
-        	window[url].error = true;
-        };
+		// Error occured
+		xhr.onerror = function() {
+			window[url].error = true;
+		};
 
-        xhr.open('GET', url, true);
-        xhr.responseType = 'arraybuffer';
-        xhr.send(null);
+		xhr.open('GET', url, true);
+		xhr.responseType = 'arraybuffer';
+		xhr.send(null);
 
-    }, url);
-
-
-
-    casper.waitFor(
-
-        function check() {
-            return this.evaluate(function(url) {
-                return window[url].transferComplete || window[url].error;
-            }, url);
-        },
-
-        function then() {
-
-        	// Check for any non-timeout errors during download
-        	var xhrData =
-	        	this.evaluate(function(url) {
-	                return {
-	                	error: window[url].error,
-	                	statusText: window[url].xhr.statusText,
-	                	statusCode: window[url].xhr.status
-	                };
-	            }, url);
-
-            if(xhrData.error) {
-            	if(onError && typeof onError === 'function') {
-            		onError({
-	            		message: 'Download failed: see error data for more information.',
-	            		data: {
-	            			url: url,
-	            			statusText: xhrData.statusText,
-	            			statusCode: xhrData.statusCode
-	            		}
-	            	});
-            	}
-            	return;
-            }
+	}, url);
 
 
-        	// Write file to hard drive
-            var base64encoded =
-            	this.evaluate(function(url) {
-	                return window.btoa([].reduce.call(
-	                    new Uint8Array(window[url].xhr.response),
-	                    function(p, c) {
-	                        return p + String.fromCharCode(c);
-	                    },
-	                    ''));
-	            }, url);
 
-            var cu = clientutils.create();
+	casper.waitFor(
 
-            fs.write(targetFilepath, cu.decode(base64encoded), 'wb');
+		function check() {
+			return this.evaluate(function(url) {
+				return window[url].transferComplete || window[url].error;
+			}, url);
+		},
 
-            if(onError && typeof onError === 'function') {
-            	onComplete();
-            }
-        },
+		function then() {
 
-        function timeout(){
-        	if(onError && typeof onError === 'function') {
-	            onError({
-            		message: 'Timed out while attempting to download file.',
-            		data: {
-            			url: url
-            		}
-            	});
-        	}
-        },
+			// Check for any non-timeout errors during download
+			var xhrData =
+				this.evaluate(function(url) {
+					return {
+						error: window[url].error,
+						statusText: window[url].xhr.statusText,
+						statusCode: window[url].xhr.status
+					};
+				}, url);
 
-        waitTimeout);
+			if(xhrData.error) {
+				if(onError && typeof onError === 'function') {
+					onError({
+						message: 'Download failed: see error data for more information.',
+						data: {
+							url: url,
+							statusText: xhrData.statusText,
+							statusCode: xhrData.statusCode
+						}
+					});
+				}
+				return;
+			}
+
+
+			// Write file to hard drive
+			var base64encoded =
+				this.evaluate(function(url) {
+					return window.btoa([].reduce.call(
+						new Uint8Array(window[url].xhr.response),
+						function(p, c) {
+							return p + String.fromCharCode(c);
+						},
+						''));
+				}, url);
+
+			var cu = clientutils.create();
+
+			fs.write(targetFilepath, cu.decode(base64encoded), 'wb');
+
+			if(onError && typeof onError === 'function') {
+				onComplete();
+			}
+		},
+
+		function timeout(){
+			if(onError && typeof onError === 'function') {
+				onError({
+					message: 'Timed out while attempting to download file.',
+					data: {
+						url: url
+					}
+				});
+			}
+		},
+
+		waitTimeout);
 };
