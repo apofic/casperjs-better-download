@@ -119,7 +119,7 @@ module.exports = function(opts) {
 
 			fs.write(targetFilepath, cu.decode(base64encoded), 'wb');
 
-			if(onError && typeof onError === 'function') {
+			if(onComplete && typeof onComplete === 'function') {
 				onComplete();
 			}
 		},
