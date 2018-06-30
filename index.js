@@ -1,6 +1,5 @@
 var casperRequire = patchRequire(require);
 var clientutils = casperRequire('clientutils');
-var fs = require('fs');
 
 /**
  * Download a file in the PhantomJS browser context instead of using the built-in
@@ -8,7 +7,6 @@ var fs = require('fs');
  * @param  {object}    opts                 Options required for download to execute.
  * @param  {object}    opts.casper          Currently running CasperJS instance.
  * @param  {string}    opts.url             Url of file to download.
- * @param  {string}    opts.targetFilepath  Local path to map the downloaded file to.
  * @param  {number}    [opts.waitTimeout]   Optional. Time in milliseconds before download times out.
  * @param  {function}  [opts.onComplete]    Optional. Called when file finished downloading.
  * @param  {function}  [opts.onError]       Optional. Called if an error occurs while downloading.
@@ -20,7 +18,6 @@ module.exports = function(opts) {
 
 	var casper = opts.casper;
 	var url = opts.url;
-	var targetFilepath = opts.targetFilepath;
 	var onComplete = opts.onComplete;
 	var onError = opts.onError;
 	var waitTimeout = opts.waitTimeout || (60000 * 5);
@@ -32,10 +29,6 @@ module.exports = function(opts) {
 
 	if(url === undefined) {
 		throw 'Url of resource to download must be provided.';
-	}
-
-	if(targetFilepath === undefined) {
-		throw 'Target file path must be provided.';
 	}
 
 
@@ -117,10 +110,8 @@ module.exports = function(opts) {
 
 			var cu = clientutils.create();
 
-			fs.write(targetFilepath, cu.decode(base64encoded), 'wb');
-
 			if(onComplete && typeof onComplete === 'function') {
-				onComplete();
+				onComplete(cu.decode(base64encoded));
 			}
 		},
 
@@ -137,3 +128,9 @@ module.exports = function(opts) {
 
 		waitTimeout);
 };
+
+/**
+ * Callback made upon successful download of a file.
+ * @callback opts.onComplete
+ * @param {string}  fileData  Decoded base64 file data.
+ */
