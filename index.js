@@ -9,6 +9,8 @@ var fs = require('fs');
  * @param  {object}    opts.casper          Currently running CasperJS instance.
  * @param  {string}    opts.url             Url of file to download.
  * @param  {string}    opts.targetFilepath  Local path to map the downloaded file to.
+ * @param  {string}    opts.method          Request method to use
+ * @param  {string}    opts.data            Form data for POST requests
  * @param  {number}    [opts.waitTimeout]   Optional. Time in milliseconds before download times out.
  * @param  {function}  [opts.onComplete]    Optional. Called when file finished downloading.
  * @param  {function}  [opts.onError]       Optional. Called if an error occurs while downloading.
@@ -21,6 +23,8 @@ module.exports = function(opts) {
 	var casper = opts.casper;
 	var url = opts.url;
 	var targetFilepath = opts.targetFilepath;
+	var method = opts.method || 'GET';
+	var data = opts.data;
 	var onComplete = opts.onComplete;
 	var onError = opts.onError;
 	var waitTimeout = opts.waitTimeout || (60000 * 5);
@@ -35,12 +39,14 @@ module.exports = function(opts) {
 	}
 
 	if(targetFilepath === undefined) {
-		throw 'Target file path must be provided.';
+		if(!onComplete || typeof onComplete !== 'function') {
+			throw 'Target file path or onComplete callback must be provided.';
+		}
 	}
 
 
 	// Create request to download file
-	casper.thenEvaluate(function(url) {
+	casper.thenEvaluate(function(url, method, data) {
 
 		// Create an object to track the download's progress
 		window[url] = {
@@ -61,11 +67,16 @@ module.exports = function(opts) {
 			window[url].error = true;
 		};
 
-		xhr.open('GET', url, true);
+		xhr.open(method, url, true);
 		xhr.responseType = 'arraybuffer';
-		xhr.send(null);
 
-	}, url);
+		if(method === 'POST') {
+			xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+			xhr.send(data);
+		} else {
+			xhr.send(null);
+		}
+	}, url, method, data);
 
 
 
@@ -117,10 +128,14 @@ module.exports = function(opts) {
 
 			var cu = clientutils.create();
 
-			fs.write(targetFilepath, cu.decode(base64encoded), 'wb');
+			var fileContents = cu.decode(base64encoded);
+
+			if(targetFilepath) {
+				fs.write(targetFilepath, fileContents, 'wb');
+			}
 
 			if(onComplete && typeof onComplete === 'function') {
-				onComplete();
+				onComplete(fileContents);
 			}
 		},
 
