@@ -24,12 +24,27 @@ betterDownload({
 });
 ```
 
+##### Using POST:
+
+```javascript
+var casper = require('casper').create({});
+var betterDownload = require('casperjs-better-download');
+
+betterDownload({
+	casper: casper,
+	url: 'https://example.com/file.pdf',
+	targetFilepath: 'data/file.pdf',
+	method: 'POST',
+	data: 'var1=value&var2=value2'
+});
+```
+
 ##### Callbacks (optional):
 
 ```javascript
 betterDownload({
 	...
-	onComplete: function() {
+	onComplete: function(fileContent) {
 		casper.then(function() {
 			// Do something after file downloads
 		});
